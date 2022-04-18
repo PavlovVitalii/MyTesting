@@ -8,17 +8,24 @@ import com.example.mytest.databinding.ActivityUnderCounterBinding
 class UnderCounterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityUnderCounterBinding
-    private var isStop: Boolean = false
-    private var startMls: Long = 5000
+    private var isStop: Boolean? = null
+    private var startMls: Long? = null
+    private var showMls: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUnderCounterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setStateActivity()
 
+        if (savedInstanceState != null) {
+            showMls = savedInstanceState.getLong("time")
+            binding.timerView.text = showMls.toString()
+            startMls = savedInstanceState.getLong("time")
+        }
 
         binding.buttonStartTimer.setOnClickListener {
-            createTimer(startMls, 1).start()
+            createTimer(startMls!!, 1).start()
             it.isEnabled = false
             binding.buttonStopTimer.isEnabled = true
             isStop = false
@@ -38,26 +45,41 @@ class UnderCounterActivity : AppCompatActivity() {
         return object : CountDownTimer(mls, step) {
             override fun onTick(mls: Long) {
 
-                if (isStop) {
-                    binding.timerView.text = mls.toString()
+
+                // if timer stoped save mls and coled cancel function
+
+                if (isStop!!) {
+                    showMls = mls
+                    binding.timerView.text = showMls.toString()
                     startMls = mls
                     cancel()
                     isStop = true
                 } else {
-                    binding.timerView.text = mls.toString()
+                    showMls = mls
+                    binding.timerView.text = showMls.toString()
 
                 }
             }
 
             override fun onFinish() {
                 binding.timerView.text = "Finish"
-                binding.buttonStopTimer.isEnabled = false
-                binding.buttonStartTimer.isEnabled = true
-                isStop = false
-                startMls = 5000
+                setStateActivity()
             }
         }
 
 
+    }
+
+    // save state activity
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong("time", showMls!!)
+    }
+
+    private fun setStateActivity() {
+        binding.buttonStopTimer.isEnabled = false
+        binding.buttonStartTimer.isEnabled = true
+        isStop = false
+        startMls = 5000
     }
 }
